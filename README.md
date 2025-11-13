@@ -13,6 +13,7 @@ This project uses **NOAA daily weather observations** and prepares them for late
 
 ## Repository Structure
 
+```plaintext
 5550-final-project/
 │
 ├── data/
@@ -38,7 +39,7 @@ This project uses **NOAA daily weather observations** and prepares them for late
 ├── README.md                    # Project documentation
 │
 └── main.ipynb                   # Runs the full pipeline end-to-end
-
+```
 
 ---
 
