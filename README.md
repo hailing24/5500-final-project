@@ -60,35 +60,43 @@ All preprocessing logic is implemented inside `src/preprocess.py`.
 
 ##  Modeling
 
-The project includes simple baseline regression models for demonstration.  
-These models are stored in `src/model.py` and include:
+The modeling component trains **three regression models** and automatically selects the best-performing one.
 
-- Linear regression for monthly mean temperature
-- Linear regression for monthly precipitation totals
-- Lagged features such as previous-month temperature or precipitation
+### **Included Models**
+- **Linear Regression**
+- **Ridge Regression**
+- **Random Forest Regressor**
 
-Model predictions can be exported to `outputs/results.csv`.
+### **Pipeline Features**
+- Chronological train/test split (80% train / 20% test)
+- Per-model evaluation metrics:
+  - RMSE
+  - MAE
+  - R²
+- Automatic model selection (best model = lowest RMSE)
+- Predictions saved to:
+outputs/predictions.csv
 
 ---
 
-## Visualization 
+## Visualization(To be done)
 
 
 ---
 
 ## Running the Pipeline
 
-To execute the entire workflow:
-
-1. Open `main.ipynb`
-2. Run all cells
+To execute the full workflow, simply run:
+python main.py
 
 This will:
 
-- Load the raw dataset  
-- Run preprocessing  
-- Generate monthly data  
-- Run modeling and visualization  
+1. Load the raw NOAA dataset
+2. Process and aggregate monthly climate statistics
+3. Add lag features
+4. Train and compare three regression models
+5. Select the best model
+6. Save predictions to outputs/predictions.csv
 ---
 
 
