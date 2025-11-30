@@ -1,102 +1,103 @@
-# 5500-final-project
+# Climate Forecasting
 
-### Climate Data Preprocessing Pipeline
-
-This repository contains a full end-to-end workflow for preparing, modeling, and visualizing NOAA climate data.
-The goal is to take raw daily weather observations, clean and organize them, aggregate them to the monthly level, and build simple predictive models.
-
-The project is organized into modular components so that preprocessing, modeling, and visualization can be run independently or as a single pipeline.
-
-This project uses **NOAA daily weather observations** and prepares them for later climate analysis.
+End‑to‑end pipeline that converts raw NOAA daily observations into monthly aggregates, engineers features, fits next‑month temperature/precipitation regressors, and classifies relative (May–Sep) heat extremes. The repository contains both a reproducible CLI entry point (`main.py`) and exploratory notebooks (most notably `notebooks/modeling.ipynb`).
 
 ---
 
-## Repository Structure
+## Data & Sources
 
-```plaintext
+- **Input**: `data/rawdata.csv`, concatenated NOAA Integrated Surface Dataset extracts (multiple stations from 1996–2024).
+- **Intermediate**: `data/monthly_data.csv`, rebuilt every run from the raw file (see `src/process.py`).
+- **Outputs** (written by `main.py`):
+  - `outputs/predictions.csv` – test-set predictions for each station/month.
+  - `outputs/forecast_next_month.csv` – one-step-ahead forecast per station using the latest month of data.
+  - `outputs/extreme_heat_classification.csv` – logistic regression probabilities/labels for May–Sep relative extremes (test years only).
+
+---
+
+## Repository Layout
+
+```
 5550-final-project/
-│
-├── data/
-│   ├── rawdata.csv              # Original NOAA daily dataset
-│   └── monthly_data.csv         # Cleaned and aggregated monthly data
-│
-├── notebooks/
-│   ├── 01_data_cleaning.ipynb   # Explore and clean raw data
-│   ├── 02_modeling.ipynb        # Train simple climate prediction models
-│   └── 03_visualization.ipynb   # Monthly trends and forecast plots
-│
-├── src/
-│   ├── preprocess.py            # Functions for loading + cleaning + monthly aggregation
-│   ├── model.py                 # Baseline regression models
-│   └── utils.py                 # Helper functions
-│
-├── outputs/
-│   ├── results.csv              # Model predictions / aggregated outputs
-│   └── figures/                 # Saved plots
-│
-├── requirements.txt             # Python dependencies
-│
-├── README.md                    # Project documentation
-│
-└── main.ipynb                   # Runs the full pipeline end-to-end
+├─ data/                         # Raw + monthly aggregated datasets
+├─ notebooks/
+│  └─ modeling.ipynb             # Mirrors the CLI workflow with extra analysis/plots
+├─ outputs/                      # Predictions, forecasts, classification tables
+├─ src/
+│  ├─ process.py                 # Daily→monthly aggregation utilities
+│  ├─ model.py                   # Regression + classification pipeline
+├─ main.py                       # CLI entry point (rebuilds data, trains models, saves outputs)
+└─ README.md
 ```
 
 ---
 
-## Preprocessing Pipeline
+## Environment
 
-Raw NOAA daily observations are converted into structured monthly climate summaries.  
-The preprocessing workflow includes:
-
-- Reading the raw `rawdata.csv`
-- Selecting key variables such as PRCP, TMAX, and TMIN
-- Converting and standardizing date formats
-- Computing monthly precipitation totals and temperature averages
-- Saving the processed output to `data/monthly_data.csv`
-
-All preprocessing logic is implemented inside `src/preprocess.py`.
+- Python 3.10+
+- Key libraries: `pandas`, `numpy`, `scikit-learn`, `matplotlib`
+- Install with `pip install -r requirements.txt` (or mirror the Anaconda env used in development).
 
 ---
 
-##  Modeling
+## Pipeline Overview
 
-The modeling component trains **three regression models** and automatically selects the best-performing one.
+1. **Preprocessing (`src/process.py`)**
+   - Parse daily NOAA csv, coerce numeric fields, derive `year`, `month`, and `TMEAN`.
+   - Aggregate to station × year × month totals/means.
+   - Persist to `data/monthly_data.csv` (overwritten each CLI run to keep notebooks + script aligned).
 
-### **Included Models**
-- **Linear Regression**
-- **Ridge Regression**
-- **Random Forest Regressor**
+2. **Feature Engineering (`src/model.py`)**
+   - Rolling precip/temperature stats, sine/cosine seasonal encodings, multiple lags (1/3/6/12 months), anomalies, and log precipitation.
+   - Relative extreme labels: station–month 90th-percentile threshold computed using pre-2021 data only.
+   - Targets: next-month TMEAN/TMAX/TMIN/PRCP; classification target is next-month relative heat flag.
 
-### **Pipeline Features**
-- Chronological train/test split (80% train / 20% test)
-- Per-model evaluation metrics:
-  - RMSE
-  - MAE
-  - R²
-- Automatic model selection (best model = lowest RMSE)
-- Predictions saved to:
-outputs/predictions.csv
+3. **Regression models**
+   - Train/test split by year (`train < 2021`, `test ≥ 2021`).
+   - Models: Linear Regression, Ridge Regression, Random Forest (300 estimators).
+   - Metrics per target: RMSE / MAE / R². Best model chosen by average RMSE across four targets.
+
+4. **Classification (May–Sep)**
+   - Balanced Logistic Regression (liblinear) with standardized features.
+   - Reports ROC AUC, F1 at default 0.5 threshold, and F1 at an optimized probability threshold (maximizing PR curve F1).
+   - Saves per-sample probabilities + predictions.
+
+5. **Forecasting**
+   - Last observation per station is advanced one month to create inputs for a one-step forecast.
+   - Uses whichever regressor had the lowest average RMSE.
+
+6. **Carbon Estimate**
+   - Simple runtime-based electricity/carbon estimate printed after each CLI run (for course sustainability requirements).
 
 ---
 
-## Visualization(To be done)
+## Usage
 
-
----
-
-## Running the Pipeline
-
-To execute the full workflow, simply run:
+```bash
 python main.py
+```
 
-This will:
+The script:
 
-1. Load the raw NOAA dataset
-2. Process and aggregate monthly climate statistics
-3. Add lag features
-4. Train and compare three regression models
-5. Select the best model
-6. Save predictions to outputs/predictions.csv
+1. Rebuilds `data/monthly_data.csv` from daily raw data.
+2. Trains regressors + classifier.
+3. Writes the three csv outputs listed above.
+4. Prints evaluation tables similar to the modeling notebook (regression metrics per target, classification reports/confusion matrices, best threshold, carbon estimate).
+
+To inspect or visualize interactively, open `notebooks/modeling.ipynb` and `Restart & Run All`. The notebook reproduces the CLI outputs and adds:
+
+- Gradient Boosting baseline (tuned) comparisons.
+- Time-series cross-validation snippets.
+- Permutation importance for TMEAN_next.
+- ROC curves and per-station diagnostic plots.
+
 ---
 
+## Interpretation Guide
+
+- **Regression metrics**: TMEAN/TMAX/TMIN RMSE ≈ 3 °F with R² ≈ 0.97 (random forest). PRCP is inherently noisier (RMSE ≈ 2 in, R² ≈ 0.54).
+- **Classification**: ROC AUC ≈ 0.65 for 2021–2024 May–Sep test months. Default threshold maximizes recall for rare heat events; tuned threshold balances F1 around 0.50.
+- **Best model**: Random Forest almost always wins; Ridge provides a linear-but-regularized reference; notebook-only Gradient Boosting illustrates a third approach.
+
+---
 

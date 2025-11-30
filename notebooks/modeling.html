@@ -102,7 +102,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Load engineered NOAA climate features, evaluate regression/classification models, and record a light-weight forecasting workflow.</p>
 <section id="data-loading" class="level2">
 <h2 class="anchored" data-anchor-id="data-loading">Data loading</h2>
-<div id="17ec3144" class="cell" data-execution_count="51">
+<div id="17ec3144" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -123,7 +123,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Monthly rows: 2,400, stations: 7</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="51">
+<div class="cell-output cell-output-display" data-execution_count="14">
 <div>
 
 
@@ -206,7 +206,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="feature-engineering" class="level2">
 <h2 class="anchored" data-anchor-id="feature-engineering">Feature engineering</h2>
-<div id="0ba57efd" class="cell" data-execution_count="52">
+<div id="0ba57efd" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>HEAT_THRESHOLD_C <span class="op">=</span> <span class="fl">32.0</span>  <span class="co"># ~90F</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>COLD_THRESHOLD_C <span class="op">=</span> <span class="fl">0.0</span>   <span class="co"># freezing point</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -274,7 +274,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="2a7e16da" class="cell" data-execution_count="53">
+<div id="2a7e16da" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> add_engineered_features(monthly)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -319,10 +319,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Feature engineered rows: 2,400</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/x8/59lsc6h95bz9br5gwthbx0rw0000gn/T/ipykernel_25324/221946923.py:8: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+<pre><code>/var/folders/x8/59lsc6h95bz9br5gwthbx0rw0000gn/T/ipykernel_37355/221946923.py:8: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
   .apply(lambda grp: grp.ffill())</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="53">
+<div class="cell-output cell-output-display" data-execution_count="16">
 <div>
 
 
@@ -368,7 +368,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.740000</td>
 <td>...</td>
 <td>0.995875</td>
-<td>18.015303</td>
+<td>18.051212</td>
 <td>0.606257</td>
 <td>1.007958</td>
 <td>0</td>
@@ -392,7 +392,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.375000</td>
 <td>...</td>
 <td>0.524356</td>
-<td>22.198771</td>
+<td>22.234680</td>
 <td>-0.123743</td>
 <td>0.698135</td>
 <td>0</td>
@@ -416,7 +416,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.103333</td>
 <td>...</td>
 <td>0.400306</td>
-<td>20.424578</td>
+<td>20.460486</td>
 <td>-0.573743</td>
 <td>0.444686</td>
 <td>0</td>
@@ -440,7 +440,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.303333</td>
 <td>...</td>
 <td>2.595128</td>
-<td>9.577803</td>
+<td>9.613712</td>
 <td>1.206257</td>
 <td>1.205971</td>
 <td>0</td>
@@ -464,7 +464,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.096667</td>
 <td>...</td>
 <td>0.432852</td>
-<td>-0.333487</td>
+<td>-0.297578</td>
 <td>-0.743743</td>
 <td>0.329304</td>
 <td>0</td>
@@ -484,7 +484,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="modeling-dataframe" class="level2">
 <h2 class="anchored" data-anchor-id="modeling-dataframe">Modeling dataframe</h2>
-<div id="cec2611c" class="cell" data-execution_count="54">
+<div id="cec2611c" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>feature_cols <span class="op">=</span> [</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'PRCP_sum'</span>, <span class="st">'TMAX_mean'</span>, <span class="st">'TMIN_mean'</span>, <span class="st">'TMEAN'</span>,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'temp_range'</span>, <span class="st">'prcp_roll3_mean'</span>, <span class="st">'prcp_roll6_mean'</span>, <span class="st">'tmean_roll3_mean'</span>, <span class="st">'tmean_roll6_std'</span>,</span>
@@ -511,20 +511,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Modeling dataframe shape: (2309, 37)
 Relative extreme heat class balance (all months):
 heat_extreme_next_rel
-0.0    1980
-1.0     329
+0.0    1989
+1.0     320
 Name: samples, dtype: int64
 Relative extreme heat class balance (May-Sep only):
 heat_extreme_next_rel
-0.0    822
-1.0    151
+0.0    829
+1.0    144
 Name: samples, dtype: int64</code></pre>
 </div>
 </div>
 </section>
 <section id="traintest-split-and-scaling" class="level2">
 <h2 class="anchored" data-anchor-id="traintest-split-and-scaling">Train/test split and scaling</h2>
-<div id="9c42ea93" class="cell" data-execution_count="55">
+<div id="9c42ea93" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _log1p_prcp(series: pd.Series) <span class="op">-&gt;</span> pd.Series:</span>
@@ -574,14 +574,14 @@ Name: samples, dtype: int64</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Regression samples - train/test: 1980 329
 Classification samples (May-Sep) - train/test: 833 140
-Classification class counts (train): {0: 728, 1: 105}
-Classification class counts (test): {0: 94, 1: 46}</code></pre>
+Classification class counts (train): {0: 726, 1: 107}
+Classification class counts (test): {0: 103, 1: 37}</code></pre>
 </div>
 </div>
 </section>
 <section id="regression-models" class="level2">
 <h2 class="anchored" data-anchor-id="regression-models">Regression models</h2>
-<div id="2e244d5f" class="cell" data-execution_count="56">
+<div id="2e244d5f" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor, GradientBoostingRegressor</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.multioutput <span class="im">import</span> MultiOutputRegressor</span>
@@ -629,28 +629,28 @@ Classification class counts (test): {0: 94, 1: 46}</code></pre>
 <span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>rmse_naive <span class="op">=</span> mean_squared_error(y_reg_test[<span class="st">'TMEAN_next'</span>], X_test[<span class="st">'TMEAN_lag1'</span>]) <span class="op">**</span> <span class="fl">0.5</span></span>
 <span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Naive baseline RMSE (TMEAN_next via lag1): </span><span class="sc">{</span>rmse_naive<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Linear Regression - TMEAN_next: RMSE=3.371, MAE=2.550, R2=0.960
-Linear Regression - TMAX_next: RMSE=3.834, MAE=2.916, R2=0.951
-Linear Regression - TMIN_next: RMSE=3.354, MAE=2.501, R2=0.960
-Linear Regression - PRCP_next: RMSE=2.206, MAE=1.372, R2=0.455
+<pre><code>Linear Regression - TMEAN_next: RMSE=3.287, MAE=2.471, R2=0.961
+Linear Regression - TMAX_next: RMSE=3.802, MAE=2.888, R2=0.952
+Linear Regression - TMIN_next: RMSE=3.335, MAE=2.472, R2=0.961
+Linear Regression - PRCP_next: RMSE=2.201, MAE=1.372, R2=0.457
 
-Random Forest Regressor - TMEAN_next: RMSE=3.059, MAE=2.348, R2=0.967
-Random Forest Regressor - TMAX_next: RMSE=3.473, MAE=2.710, R2=0.960
-Random Forest Regressor - TMIN_next: RMSE=2.995, MAE=2.236, R2=0.968
-Random Forest Regressor - PRCP_next: RMSE=2.052, MAE=1.338, R2=0.528
+Random Forest Regressor - TMEAN_next: RMSE=3.031, MAE=2.324, R2=0.967
+Random Forest Regressor - TMAX_next: RMSE=3.526, MAE=2.737, R2=0.959
+Random Forest Regressor - TMIN_next: RMSE=3.023, MAE=2.269, R2=0.968
+Random Forest Regressor - PRCP_next: RMSE=2.025, MAE=1.322, R2=0.540
 
-Gradient Boosting Regressor - TMEAN_next: RMSE=3.166, MAE=2.369, R2=0.965
-Gradient Boosting Regressor - TMAX_next: RMSE=3.588, MAE=2.725, R2=0.957
-Gradient Boosting Regressor - TMIN_next: RMSE=3.195, MAE=2.414, R2=0.964
-Gradient Boosting Regressor - PRCP_next: RMSE=2.069, MAE=1.357, R2=0.520
+Gradient Boosting Regressor - TMEAN_next: RMSE=3.123, MAE=2.335, R2=0.965
+Gradient Boosting Regressor - TMAX_next: RMSE=3.635, MAE=2.769, R2=0.956
+Gradient Boosting Regressor - TMIN_next: RMSE=3.160, MAE=2.361, R2=0.965
+Gradient Boosting Regressor - PRCP_next: RMSE=2.052, MAE=1.335, R2=0.528
 
-Naive baseline RMSE (TMEAN_next via lag1): 13.429</code></pre>
+Naive baseline RMSE (TMEAN_next via lag1): 13.327</code></pre>
 </div>
 </div>
 <section id="one-month-ahead-forecast" class="level3">
 <h3 class="anchored" data-anchor-id="one-month-ahead-forecast">One-month-ahead forecast</h3>
 <p>Use a persistence assumption: the most recent engineered features per station (through month <em>t</em>) are kept as the inputs for forecasting month <em>t+1</em>, while purely calendar-dependent features (month number, sine/cosine) and the obvious lag-1 values are updated. This keeps the pipeline transparent while acknowledging that we do not have fresh information for rolling features until the next observation arrives.</p>
-<div id="84c65872" class="cell" data-execution_count="57">
+<div id="84c65872" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the most recent record per station to forecast the next month</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>last_rows <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>).tail(<span class="dv">1</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>future_df <span class="op">=</span> last_rows.copy()</span>
@@ -696,23 +696,23 @@ Naive baseline RMSE (TMEAN_next via lag1): 13.429</code></pre>
 <span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>future_pred_gb <span class="op">=</span> _print_forecast(gb_reg, <span class="st">'Gradient Boosting'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Linear Regression forecast:
-  TMEAN_next: 32.830
-  TMAX_next: 45.779
-  TMIN_next: 19.880
-  PRCP_next: 0.508
+  TMEAN_next: 32.817
+  TMAX_next: 45.905
+  TMIN_next: 19.914
+  PRCP_next: 0.510
 Random Forest forecast:
-  TMEAN_next: 32.009
-  TMAX_next: 44.903
-  TMIN_next: 19.115
-  PRCP_next: 0.383
+  TMEAN_next: 32.022
+  TMAX_next: 44.998
+  TMIN_next: 19.161
+  PRCP_next: 0.407
 Gradient Boosting forecast:
-  TMEAN_next: 30.873
-  TMAX_next: 44.739
-  TMIN_next: 18.567
-  PRCP_next: 0.496</code></pre>
+  TMEAN_next: 30.163
+  TMAX_next: 45.055
+  TMIN_next: 17.694
+  PRCP_next: 0.400</code></pre>
 </div>
 </div>
-<div id="96e91b1d" class="cell" data-execution_count="58">
+<div id="96e91b1d" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> TimeSeriesSplit</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Rolling-origin evaluation for TMEAN_next</span></span>
@@ -734,15 +734,15 @@ Gradient Boosting forecast:
 <span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Rolling CV RMSE avg: </span><span class="sc">{</span>np<span class="sc">.</span>mean(cv_rmse)<span class="sc">:.3f}</span><span class="ss"> ± </span><span class="sc">{</span>np<span class="sc">.</span>std(cv_rmse)<span class="sc">:.3f}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Split 1: RMSE=5.552
-Split 2: RMSE=4.066
-Split 3: RMSE=3.666
-Split 4: RMSE=3.652
-Split 5: RMSE=5.033
-Rolling CV RMSE avg: 4.394 ± 0.766</code></pre>
+<pre><code>Split 1: RMSE=5.323
+Split 2: RMSE=4.446
+Split 3: RMSE=3.714
+Split 4: RMSE=3.589
+Split 5: RMSE=5.041
+Rolling CV RMSE avg: 4.423 ± 0.691</code></pre>
 </div>
 </div>
-<div id="95648520" class="cell" data-execution_count="59">
+<div id="95648520" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> permutation_importance</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Permutation importance for Gradient Boosting on TMEAN_next</span></span>
@@ -764,7 +764,7 @@ Rolling CV RMSE avg: 4.394 ± 0.766</code></pre>
 <span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">'importance'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>perm_df.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="59">
+<div class="cell-output cell-output-display" data-execution_count="22">
 <div>
 
 
@@ -781,62 +781,62 @@ Rolling CV RMSE avg: 4.394 ± 0.766</code></pre>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">3</td>
 <td>TMEAN</td>
-<td>114.108577</td>
-<td>6.948988</td>
+<td>119.937750</td>
+<td>6.727162</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">10</td>
 <td>month_cos</td>
-<td>31.484609</td>
-<td>2.072786</td>
+<td>29.332054</td>
+<td>2.217072</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">14</td>
 <td>TMEAN_lag12</td>
-<td>29.716491</td>
-<td>1.559981</td>
+<td>26.046935</td>
+<td>1.701199</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">9</td>
 <td>month_sin</td>
-<td>23.773178</td>
-<td>1.792343</td>
+<td>23.276299</td>
+<td>1.631037</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">1</td>
 <td>TMAX_mean</td>
-<td>14.266913</td>
-<td>1.306921</td>
+<td>16.593927</td>
+<td>1.596225</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">2</td>
 <td>TMIN_mean</td>
-<td>8.922821</td>
-<td>0.783027</td>
+<td>8.150551</td>
+<td>0.598671</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">13</td>
 <td>TMEAN_lag6</td>
-<td>2.809212</td>
-<td>0.439964</td>
+<td>3.331771</td>
+<td>0.479883</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">8</td>
 <td>tmean_roll6_std</td>
-<td>2.472995</td>
-<td>0.321886</td>
+<td>3.039753</td>
+<td>0.374192</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">12</td>
 <td>TMEAN_lag3</td>
-<td>1.983124</td>
-<td>0.305188</td>
+<td>2.606752</td>
+<td>0.424656</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">24</td>
-<td>TMEAN_station_norm</td>
-<td>0.823795</td>
-<td>0.221594</td>
+<td data-quarto-table-cell-role="th">4</td>
+<td>temp_range</td>
+<td>0.485144</td>
+<td>0.113030</td>
 </tr>
 </tbody>
 </table>
@@ -845,167 +845,193 @@ Rolling CV RMSE avg: 4.394 ± 0.766</code></pre>
 </div>
 </div>
 </section>
+<section id="gradient-boosting-baseline" class="level3">
+<h3 class="anchored" data-anchor-id="gradient-boosting-baseline">Gradient Boosting baseline</h3>
+<p>Gradient boosting regressor before diving into the heat classification so the regression suite now has three distinct perspectives.</p>
+<div id="47870da4" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> GradientBoostingRegressor</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.multioutput <span class="im">import</span> MultiOutputRegressor</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>gb_tuned <span class="op">=</span> MultiOutputRegressor(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    GradientBoostingRegressor(</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        random_state<span class="op">=</span><span class="dv">42</span>, learning_rate<span class="op">=</span><span class="fl">0.05</span>, n_estimators<span class="op">=</span><span class="dv">500</span>, max_depth<span class="op">=</span><span class="dv">3</span>, subsample<span class="op">=</span><span class="fl">0.8</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>gb_preds_tuned, gb_model_tuned <span class="op">=</span> summarize_regression(</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    gb_tuned, <span class="st">'Gradient Boosting Regressor'</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>reg_predictions[<span class="st">'Gradient Boosting Regressor'</span>] <span class="op">=</span> gb_preds_tuned</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>fitted_models[<span class="st">'Gradient Boosting Regressor'</span>] <span class="op">=</span> gb_model_tuned</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Gradient Boosting Regressor (tuned) - TMEAN_next: RMSE=3.050, MAE=2.306, R2=0.967
+Gradient Boosting Regressor (tuned) - TMAX_next: RMSE=3.467, MAE=2.647, R2=0.960
+Gradient Boosting Regressor (tuned) - TMIN_next: RMSE=3.033, MAE=2.292, R2=0.967
+Gradient Boosting Regressor (tuned) - PRCP_next: RMSE=2.082, MAE=1.338, R2=0.514
+</code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="classification-model-may-sep-relative-extreme-heat" class="level2">
 <h2 class="anchored" data-anchor-id="classification-model-may-sep-relative-extreme-heat">Classification model (May-Sep relative extreme heat)</h2>
 <p>Focus on summer months (May–Sep) where the relative label is most meaningful. Logistic Regression with <code>class_weight="balanced"</code> is the sole classifier.</p>
-<div id="ba696f52" class="cell" data-execution_count="61">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report, confusion_matrix, roc_auc_score, precision_recall_curve</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>log_clf <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>, solver<span class="op">=</span><span class="st">'liblinear'</span>, class_weight<span class="op">=</span><span class="st">'balanced'</span>)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>log_clf.fit(X_clf_train_scaled, y_clf_train)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>y_clf_prob <span class="op">=</span> log_clf.predict_proba(X_clf_test_scaled)[:, <span class="dv">1</span>]</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>precision, recall, thresholds <span class="op">=</span> precision_recall_curve(y_clf_test, y_clf_prob)</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>f1_scores <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> precision <span class="op">*</span> recall <span class="op">/</span> (precision <span class="op">+</span> recall <span class="op">+</span> <span class="fl">1e-8</span>)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>best_idx <span class="op">=</span> f1_scores[:<span class="op">-</span><span class="dv">1</span>].argmax()</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>best_threshold <span class="op">=</span> thresholds[best_idx]</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Logistic Regression optimal probability threshold (by F1): </span><span class="sc">{</span>best_threshold<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label, threshold <span class="kw">in</span> {</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Default 0.5 threshold'</span>: <span class="fl">0.5</span>,</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'F1-optimized threshold'</span>: best_threshold,</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>}.items():</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    preds <span class="op">=</span> (y_clf_prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Logistic Regression (</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(classification_report(y_clf_test, preds, digits<span class="op">=</span><span class="dv">3</span>, zero_division<span class="op">=</span><span class="dv">0</span>))</span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'Confusion matrix:'</span>)</span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(confusion_matrix(y_clf_test, preds))</span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Logistic Regression ROC AUC: </span><span class="sc">{</span>roc_auc_score(y_clf_test, y_clf_prob)<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="ba696f52" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report, confusion_matrix, roc_auc_score, precision_recall_curve</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>log_clf <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>, solver<span class="op">=</span><span class="st">'liblinear'</span>, class_weight<span class="op">=</span><span class="st">'balanced'</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>log_clf.fit(X_clf_train_scaled, y_clf_train)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>y_clf_prob <span class="op">=</span> log_clf.predict_proba(X_clf_test_scaled)[:, <span class="dv">1</span>]</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>precision, recall, thresholds <span class="op">=</span> precision_recall_curve(y_clf_test, y_clf_prob)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>f1_scores <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> precision <span class="op">*</span> recall <span class="op">/</span> (precision <span class="op">+</span> recall <span class="op">+</span> <span class="fl">1e-8</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>best_idx <span class="op">=</span> f1_scores[:<span class="op">-</span><span class="dv">1</span>].argmax()</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>best_threshold <span class="op">=</span> thresholds[best_idx]</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Logistic Regression optimal probability threshold (by F1): </span><span class="sc">{</span>best_threshold<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label, threshold <span class="kw">in</span> {</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Default 0.5 threshold'</span>: <span class="fl">0.5</span>,</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'F1-optimized threshold'</span>: best_threshold,</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>}.items():</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    preds <span class="op">=</span> (y_clf_prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Logistic Regression (</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(classification_report(y_clf_test, preds, digits<span class="op">=</span><span class="dv">3</span>, zero_division<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'Confusion matrix:'</span>)</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(confusion_matrix(y_clf_test, preds))</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Logistic Regression ROC AUC: </span><span class="sc">{</span>roc_auc_score(y_clf_test, y_clf_prob)<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Logistic Regression optimal probability threshold (by F1): 0.52
 Logistic Regression (Default 0.5 threshold)
               precision    recall  f1-score   support
 
-           0      0.855     0.564     0.679        94
-           1      0.474     0.804     0.597        46
+           0      0.838     0.553     0.667       103
+           1      0.361     0.703     0.477        37
 
-    accuracy                          0.643       140
-   macro avg      0.665     0.684     0.638       140
-weighted avg      0.730     0.643     0.652       140
+    accuracy                          0.593       140
+   macro avg      0.600     0.628     0.572       140
+weighted avg      0.712     0.593     0.617       140
 
 Confusion matrix:
-[[53 41]
- [ 9 37]]
+[[57 46]
+ [11 26]]
 Logistic Regression (F1-optimized threshold)
               precision    recall  f1-score   support
 
-           0      0.857     0.638     0.732        94
-           1      0.514     0.783     0.621        46
+           0      0.849     0.602     0.705       103
+           1      0.388     0.703     0.500        37
 
-    accuracy                          0.686       140
-   macro avg      0.686     0.710     0.676       140
-weighted avg      0.744     0.686     0.695       140
+    accuracy                          0.629       140
+   macro avg      0.619     0.652     0.602       140
+weighted avg      0.727     0.629     0.650       140
 
 Confusion matrix:
-[[60 34]
- [10 36]]
-Logistic Regression ROC AUC: 0.725</code></pre>
+[[62 41]
+ [11 26]]
+Logistic Regression ROC AUC: 0.646</code></pre>
 </div>
 </div>
-<div id="1338832b" class="cell" data-execution_count="66">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>best_reg_name <span class="op">=</span> <span class="st">'Random Forest Regressor'</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>reg_pred_df <span class="op">=</span> pd.DataFrame(reg_predictions[best_reg_name], columns<span class="op">=</span>reg_targets)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>test_targets_df <span class="op">=</span> y_reg_test.reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>test_meta <span class="op">=</span> model_df.loc[test_mask, [<span class="st">'STATION'</span>]].reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>station_metrics <span class="op">=</span> []</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> station, grp <span class="kw">in</span> test_meta.groupby(<span class="st">'STATION'</span>):</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> grp.index</span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    y_true <span class="op">=</span> test_targets_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> reg_pred_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> mean_squared_error(y_true, y_pred) <span class="op">**</span> <span class="fl">0.5</span></span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    r2 <span class="op">=</span> r2_score(y_true, y_pred)</span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    station_metrics.append({<span class="st">'STATION'</span>: station, <span class="st">'rmse_tmean'</span>: rmse, <span class="st">'r2_tmean'</span>: r2, <span class="st">'samples'</span>: <span class="bu">len</span>(idx)})</span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>station_metrics_df <span class="op">=</span> pd.DataFrame(station_metrics).sort_values(<span class="st">'rmse_tmean'</span>)</span>
-<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Per-station TMEAN_next metrics (using Random Forest predictions):'</span>)</span>
-<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(station_metrics_df)</span>
-<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
-<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>plt.scatter(test_targets_df[<span class="st">'TMEAN_next'</span>], reg_pred_df[<span class="st">'TMEAN_next'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
-<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>lims <span class="op">=</span> [<span class="bu">min</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>()),</span>
-<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">max</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>())]</span>
-<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>plt.plot(lims, lims, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
-<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Actual TMEAN_next (°F)'</span>)</span>
-<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted TMEAN_next (°F)'</span>)</span>
-<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'TMEAN_next predicted vs. actual'</span>)</span>
-<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="1338832b" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>best_reg_name <span class="op">=</span> <span class="st">'Random Forest Regressor'</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>reg_pred_df <span class="op">=</span> pd.DataFrame(reg_predictions[best_reg_name], columns<span class="op">=</span>reg_targets)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>test_targets_df <span class="op">=</span> y_reg_test.reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>test_meta <span class="op">=</span> model_df.loc[test_mask, [<span class="st">'STATION'</span>]].reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>station_metrics <span class="op">=</span> []</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> station, grp <span class="kw">in</span> test_meta.groupby(<span class="st">'STATION'</span>):</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> grp.index</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    y_true <span class="op">=</span> test_targets_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> reg_pred_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> mean_squared_error(y_true, y_pred) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    r2 <span class="op">=</span> r2_score(y_true, y_pred)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    station_metrics.append({<span class="st">'STATION'</span>: station, <span class="st">'rmse_tmean'</span>: rmse, <span class="st">'r2_tmean'</span>: r2, <span class="st">'samples'</span>: <span class="bu">len</span>(idx)})</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>station_metrics_df <span class="op">=</span> pd.DataFrame(station_metrics).sort_values(<span class="st">'rmse_tmean'</span>)</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Per-station TMEAN_next metrics (using Random Forest predictions):'</span>)</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(station_metrics_df)</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>plt.scatter(test_targets_df[<span class="st">'TMEAN_next'</span>], reg_pred_df[<span class="st">'TMEAN_next'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>lims <span class="op">=</span> [<span class="bu">min</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>()),</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">max</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>())]</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>plt.plot(lims, lims, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Actual TMEAN_next (°F)'</span>)</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted TMEAN_next (°F)'</span>)</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'TMEAN_next predicted vs. actual'</span>)</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Per-station TMEAN_next metrics (using Random Forest predictions):
        STATION  rmse_tmean  r2_tmean  samples
-1  USW00012839    1.932871  0.854660       47
-4  USW00093134    2.236806  0.882146       47
-3  USW00024233    2.487606  0.938857       47
-5  USW00094789    3.270486  0.950329       47
-2  USW00023183    3.422408  0.948566       47
-0  USW00003017    3.725158  0.950455       47
-6  USW00094846    3.780647  0.951683       47</code></pre>
+1  USW00012839    1.683668  0.884653       47
+4  USW00093134    2.197362  0.886265       47
+3  USW00024233    2.430709  0.938695       47
+5  USW00094789    3.171373  0.951329       47
+2  USW00023183    3.538178  0.946493       47
+0  USW00003017    3.686070  0.950138       47
+6  USW00094846    3.819893  0.950534       47</code></pre>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="modeling_files/figure-html/cell-12-output-2.png" class="img-fluid figure-img"></p>
+<p><img src="modeling_files/figure-html/cell-13-output-2.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<div id="bccf64ea" class="cell" data-execution_count="69">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>fpr, tpr, _ <span class="op">=</span> roc_curve(y_clf_test, y_clf_prob)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>roc_auc <span class="op">=</span> roc_auc_score(y_clf_test, y_clf_prob)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>plt.plot(fpr, tpr, label<span class="op">=</span><span class="ss">f'ROC AUC = </span><span class="sc">{</span>roc_auc<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'False Positive Rate'</span>)</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'True Positive Rate'</span>)</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Logistic Regression ROC (May-Sep extreme heat)'</span>)</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">'lower right'</span>)</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="modeling_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
-</figure>
-</div>
-</div>
-</div>
-<div id="be76c2ee" class="cell" data-execution_count="73">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>station_metrics_df.sort_values(<span class="st">'rmse_tmean'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># RMSE</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'rmse_tmean'</span>], color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Per-station RMSE (TMEAN_next)'</span>)</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Station'</span>)</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'RMSE (°F)'</span>)</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>)  </span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co"># R*2</span></span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'r2_tmean'</span>], color<span class="op">=</span><span class="st">'darkorange'</span>)</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Per-station R² (TMEAN_next)'</span>)</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Station'</span>)</span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'R²'</span>)</span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>) </span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="bccf64ea" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>fpr, tpr, _ <span class="op">=</span> roc_curve(y_clf_test, y_clf_prob)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>roc_auc <span class="op">=</span> roc_auc_score(y_clf_test, y_clf_prob)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>plt.plot(fpr, tpr, label<span class="op">=</span><span class="ss">f'ROC AUC = </span><span class="sc">{</span>roc_auc<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'False Positive Rate'</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'True Positive Rate'</span>)</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Logistic Regression ROC (May-Sep extreme heat)'</span>)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">'lower right'</span>)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="modeling_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="be76c2ee" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>station_metrics_df.sort_values(<span class="st">'rmse_tmean'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"># RMSE</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'rmse_tmean'</span>], color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Per-station RMSE (TMEAN_next)'</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Station'</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'RMSE (°F)'</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>)  </span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="co"># R*2</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'r2_tmean'</span>], color<span class="op">=</span><span class="st">'darkorange'</span>)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Per-station R² (TMEAN_next)'</span>)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Station'</span>)</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'R²'</span>)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>) </span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="modeling_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </div>
