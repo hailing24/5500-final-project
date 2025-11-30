@@ -7,6 +7,11 @@ from src.model import ModelResult, train_and_predict
 from src.process import process_monthly_data
 from sklearn.metrics import classification_report, confusion_matrix
 
+try:
+    from codecarbon import EmissionsTracker
+except ImportError:
+    EmissionsTracker = None
+
 # This script recreates the modeling workflow from the Jupyter notebook,
 # but in a single reproducible command-line entry point.
 # It performs:
@@ -87,6 +92,50 @@ def _estimate_carbon_cost(duration_seconds: float) -> float:
     return hours * CARBON_POWER_KW * CARBON_INTENSITY_KG_PER_KWH
 
 
+def _start_emissions_tracker(outputs_dir: str):
+    """
+    Kick off CodeCarbon tracking if the library is available.
+    Returns the started tracker and the directory where logs are written.
+    """
+    if EmissionsTracker is None:
+        print(
+            "CodeCarbon is not installed. Run `pip install codecarbon` to enable "
+            "hardware-based emissions tracking."
+        )
+        return None, None
+
+    tracker_output_dir = os.path.join(outputs_dir, "codecarbon")
+    os.makedirs(tracker_output_dir, exist_ok=True)
+
+    try:
+        tracker = EmissionsTracker(
+            project_name="climate_forecasting",
+            output_dir=tracker_output_dir,
+            save_to_file=True,
+            log_level="warning",
+        )
+        tracker.start()
+    except Exception as exc:  # pragma: no cover - defensive logging
+        print(f"Warning: CodeCarbon tracker could not be started ({exc}).")
+        return None, None
+
+    return tracker, tracker_output_dir
+
+
+def _stop_emissions_tracker(tracker):
+    """
+    Stop CodeCarbon tracker and return measured kg CO2e, if tracking was enabled.
+    """
+    if tracker is None:
+        return None
+
+    try:
+        return tracker.stop()
+    except Exception as exc:  # pragma: no cover - defensive logging
+        print(f"Warning: Failed to stop CodeCarbon tracker ({exc}).")
+        return None
+
+
 def main() -> None:
     """
     End-to-end pipeline entry point:
@@ -105,58 +154,72 @@ def main() -> None:
     raw_path = os.path.join(base_dir, "data", "rawdata.csv")
     monthly_output_path = os.path.join(base_dir, "data", "monthly_data.csv")
     outputs_dir = os.path.join(base_dir, "outputs")
+    os.makedirs(outputs_dir, exist_ok=True)
     predictions_path = os.path.join(outputs_dir, "predictions.csv")
     forecast_path = os.path.join(outputs_dir, "forecast_next_month.csv")
     classification_path = os.path.join(outputs_dir, "extreme_heat_classification.csv")
 
+    tracker, tracker_output_dir = _start_emissions_tracker(outputs_dir)
     start_time = time.perf_counter()
 
-    # Preprocess raw daily to monthly 
-    print("=== Preprocessing raw data ===")
-    monthly = process_monthly_data(
-        raw_path=raw_path,
-        monthly_output_path=monthly_output_path,
-    )
-    # Rebuilding monthly_data.csv each run guarantees notebook + script consistency.
-
-    # Train all models + generate predictions
-    print("=== Training models and generating predictions ===")
-    results = train_and_predict(monthly)
-
-    # Ensure output directory exists
-    os.makedirs(outputs_dir, exist_ok=True)
-
-    # Save regression predictions
-    results.predictions.to_csv(predictions_path, index=False)
-    print(f"Predictions saved to: {predictions_path}")
-
-    # Save next-month forecast
-    if results.forecast is not None:
-        results.forecast.to_csv(forecast_path, index=False)
-        print(f"One-month-ahead forecast saved to: {forecast_path}")
-
-    # Save classification outputs
-    if results.classification_predictions is not None:
-        results.classification_predictions.to_csv(classification_path, index=False)
-        print(
-            "Extreme-heat classification predictions saved to: "
-            f"{classification_path}"
+    try:
+        # Preprocess raw daily to monthly 
+        print("=== Preprocessing raw data ===")
+        monthly = process_monthly_data(
+            raw_path=raw_path,
+            monthly_output_path=monthly_output_path,
         )
+        # Rebuilding monthly_data.csv each run guarantees notebook + script consistency.
 
-    # Print evaluation summaries 
-    print("=== Done ===")
-    print(f"Best regression model: {results.model_used}")
-    _print_regression_metrics(results)
-    _print_classification_metrics(results)
+        # Train all models + generate predictions
+        print("=== Training models and generating predictions ===")
+        results = train_and_predict(monthly)
 
-    # Compute carbon footprint 
-    duration = time.perf_counter() - start_time
-    carbon_cost = _estimate_carbon_cost(duration)
-    print(
-        f"\nEstimated carbon cost: {carbon_cost:.4f} kg CO2e "
-        f"(runtime {duration:.1f}s, power {CARBON_POWER_KW:.3f} kW, "
-        f"intensity {CARBON_INTENSITY_KG_PER_KWH:.3f} kg/kWh)"
-    )
+        # Save regression predictions
+        results.predictions.to_csv(predictions_path, index=False)
+        print(f"Predictions saved to: {predictions_path}")
+
+        # Save next-month forecast
+        if results.forecast is not None:
+            results.forecast.to_csv(forecast_path, index=False)
+            print(f"One-month-ahead forecast saved to: {forecast_path}")
+
+        # Save classification outputs
+        if results.classification_predictions is not None:
+            results.classification_predictions.to_csv(classification_path, index=False)
+            print(
+                "Extreme-heat classification predictions saved to: "
+                f"{classification_path}"
+            )
+
+        # Print evaluation summaries 
+        print("=== Done ===")
+        print(f"Best regression model: {results.model_used}")
+        _print_regression_metrics(results)
+        _print_classification_metrics(results)
+
+    finally:
+        # Compute carbon footprint 
+        duration = time.perf_counter() - start_time
+        emissions_kg = _stop_emissions_tracker(tracker)
+
+        if emissions_kg is not None:
+            log_hint = (
+                f" (detailed log in {os.path.join(tracker_output_dir, 'emissions.csv')})"
+                if tracker_output_dir
+                else ""
+            )
+            print(
+                f"\nCodeCarbon measured emissions: {emissions_kg:.4f} kg CO2e "
+                f"(runtime {duration:.1f}s){log_hint}"
+            )
+        else:
+            carbon_cost = _estimate_carbon_cost(duration)
+            print(
+                f"\nEstimated carbon cost: {carbon_cost:.4f} kg CO2e "
+                f"(runtime {duration:.1f}s, power {CARBON_POWER_KW:.3f} kW, "
+                f"intensity {CARBON_INTENSITY_KG_PER_KWH:.3f} kg/kWh)"
+            )
 
 
 if __name__ == "__main__":

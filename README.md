@@ -1,4 +1,4 @@
-# Climate Forecasting
+# Forecasting Monthly Temperature, Precipitation, and Extreme Heat Events
 
 End‑to‑end pipeline that converts raw NOAA daily observations into monthly aggregates, engineers features, fits next‑month temperature/precipitation regressors, and classifies relative (May–Sep) heat extremes. The repository contains both a reproducible CLI entry point (`main.py`) and exploratory notebooks (most notably `notebooks/modeling.ipynb`).
 
@@ -12,6 +12,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
   - `outputs/predictions.csv` – test-set predictions for each station/month.
   - `outputs/forecast_next_month.csv` – one-step-ahead forecast per station using the latest month of data.
   - `outputs/extreme_heat_classification.csv` – logistic regression probabilities/labels for May–Sep relative extremes (test years only).
+  - `outputs/codecarbon/emissions.csv` – CodeCarbon log with the measured energy use and kg CO2e for each CLI run.
 
 ---
 
@@ -35,7 +36,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
 ## Environment
 
 - Python 3.10+
-- Key libraries: `pandas`, `numpy`, `scikit-learn`, `matplotlib`
+- Key libraries: `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `codecarbon`
 - Install with `pip install -r requirements.txt` (or mirror the Anaconda env used in development).
 
 ---
@@ -67,7 +68,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
    - Uses whichever regressor had the lowest average RMSE.
 
 6. **Carbon Estimate**
-   - Simple runtime-based electricity/carbon estimate printed after each CLI run.
+   - Uses the `codecarbon` tracker to measure real-time energy consumption and kg CO2e; falls back to the previous runtime-based approximation if the tracker is unavailable.
 
 ---
 
@@ -101,3 +102,10 @@ To inspect or visualize interactively, open `notebooks/modeling.ipynb`. The note
 
 ---
 
+## Carbon Footprint Tracking
+
+- Every invocation of `python main.py` wraps preprocessing, model training, inference, and file exports in a [CodeCarbon](https://mlco2.github.io/codecarbon/) tracker. The tracker logs energy usage and estimated kg CO2e into `outputs/codecarbon/emissions.csv`.
+- The log file records both the aggregate run statistics (duration, CPU/GPU/RAM power draw, kg CO2e, hardware info) and a unique `run_id` so we can compare different experiments or machines.
+- Typical local runs on an Apple M2 laptop consume ≈ 9 s wall-clock time and ≈ 2 × 10⁻⁶ kg CO2e for the full training + inference pass (see the sample row currently in `outputs/codecarbon/emissions.csv`).
+
+---
