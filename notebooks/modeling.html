@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Monthly Modeling Pipeline</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="modeling_files/libs/clipboard/clipboard.min.js"></script>
+<script src="modeling_files/libs/quarto-html/quarto.js"></script>
+<script src="modeling_files/libs/quarto-html/popper.min.js"></script>
+<script src="modeling_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="modeling_files/libs/quarto-html/anchor.min.js"></script>
+<link href="modeling_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="modeling_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="modeling_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="modeling_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="modeling_files/libs/bootstrap/bootstrap-973236bd072d72a04ee9cd82dcc9cb29.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Monthly Modeling Pipeline</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Load engineered NOAA climate features, evaluate regression/classification models, and record a light-weight forecasting workflow.</p>
+<section id="data-loading" class="level2">
+<h2 class="anchored" data-anchor-id="data-loading">Data loading</h2>
+<div id="17ec3144" class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>DATA_PATH <span class="op">=</span> Path(<span class="st">"../data/monthly_data.csv"</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> (</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    pd.read_csv(DATA_PATH, parse_dates<span class="op">=</span>[<span class="st">'ym'</span>])</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    .sort_values([<span class="st">'STATION'</span>, <span class="st">'year'</span>, <span class="st">'month'</span>])</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    .reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>TRAIN_THRESHOLD <span class="op">=</span> <span class="dv">2021</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>REL_EXTREME_Q <span class="op">=</span> <span class="fl">0.90</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Monthly rows: </span><span class="sc">{</span><span class="bu">len</span>(monthly)<span class="sc">:,}</span><span class="ss">, stations: </span><span class="sc">{</span>monthly[<span class="st">'STATION'</span>]<span class="sc">.</span>nunique()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>monthly.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Monthly rows: 2,400, stations: 7</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="51">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">STATION</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">month</th>
+<th data-quarto-table-cell-role="th">PRCP_sum</th>
+<th data-quarto-table-cell-role="th">TMAX_mean</th>
+<th data-quarto-table-cell-role="th">TMIN_mean</th>
+<th data-quarto-table-cell-role="th">TMEAN</th>
+<th data-quarto-table-cell-role="th">ym</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>6</td>
+<td>1.74</td>
+<td>85.083333</td>
+<td>53.291667</td>
+<td>69.187500</td>
+<td>1996-06-01</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>7</td>
+<td>1.01</td>
+<td>87.967742</td>
+<td>58.774194</td>
+<td>73.370968</td>
+<td>1996-07-01</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>8</td>
+<td>0.56</td>
+<td>87.064516</td>
+<td>56.129032</td>
+<td>71.596774</td>
+<td>1996-08-01</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>9</td>
+<td>2.34</td>
+<td>74.600000</td>
+<td>46.900000</td>
+<td>60.750000</td>
+<td>1996-09-01</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>10</td>
+<td>0.39</td>
+<td>64.903226</td>
+<td>36.774194</td>
+<td>50.838710</td>
+<td>1996-10-01</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="feature-engineering" class="level2">
+<h2 class="anchored" data-anchor-id="feature-engineering">Feature engineering</h2>
+<div id="0ba57efd" class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>HEAT_THRESHOLD_C <span class="op">=</span> <span class="fl">32.0</span>  <span class="co"># ~90F</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>COLD_THRESHOLD_C <span class="op">=</span> <span class="fl">0.0</span>   <span class="co"># freezing point</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> add_engineered_features(df: pd.DataFrame) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> df.sort_values([<span class="st">'STATION'</span>, <span class="st">'year'</span>, <span class="st">'month'</span>]).copy()</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'month'</span>] <span class="op">=</span> df[<span class="st">'month'</span>].astype(<span class="bu">int</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Daily spread and rolling precipitation signals</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'temp_range'</span>] <span class="op">=</span> df[<span class="st">'TMAX_mean'</span>] <span class="op">-</span> df[<span class="st">'TMIN_mean'</span>]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'prcp_roll3_mean'</span>] <span class="op">=</span> (</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'PRCP_sum'</span>]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">3</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean())</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'prcp_roll6_mean'</span>] <span class="op">=</span> (</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'PRCP_sum'</span>]</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">6</span>, min_periods<span class="op">=</span><span class="dv">1</span>).mean())</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Rolling behavior for temperature</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'tmean_roll3_mean'</span>] <span class="op">=</span> (</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>]</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">3</span>, min_periods<span class="op">=</span><span class="dv">2</span>).mean())</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'tmean_roll6_std'</span>] <span class="op">=</span> (</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>]</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">6</span>, min_periods<span class="op">=</span><span class="dv">2</span>).std())</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Cyclical encoding for the month feature</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'month_sin'</span>] <span class="op">=</span> np.sin(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> df[<span class="st">'month'</span>] <span class="op">/</span> <span class="fl">12.0</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'month_cos'</span>] <span class="op">=</span> np.cos(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> df[<span class="st">'month'</span>] <span class="op">/</span> <span class="fl">12.0</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Temperature/precipitation lags</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lag <span class="kw">in</span> (<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">6</span>, <span class="dv">12</span>):</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        df[<span class="ss">f'TMEAN_lag</span><span class="sc">{</span>lag<span class="sc">}</span><span class="ss">'</span>] <span class="op">=</span> df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>].shift(lag)</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lag <span class="kw">in</span> (<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">12</span>):</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        df[<span class="ss">f'PRCP_lag</span><span class="sc">{</span>lag<span class="sc">}</span><span class="ss">'</span>] <span class="op">=</span> df.groupby(<span class="st">'STATION'</span>)[<span class="st">'PRCP_sum'</span>].shift(lag)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'TMEAN_roll3'</span>] <span class="op">=</span> (</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>]</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">3</span>, min_periods<span class="op">=</span><span class="dv">2</span>).mean())</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'TMEAN_roll6'</span>] <span class="op">=</span> (</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>]</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        .transform(<span class="kw">lambda</span> s: s.rolling(window<span class="op">=</span><span class="dv">6</span>, min_periods<span class="op">=</span><span class="dv">3</span>).mean())</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'heat_extreme'</span>] <span class="op">=</span> (df[<span class="st">'TMAX_mean'</span>] <span class="op">&gt;=</span> HEAT_THRESHOLD_C).astype(<span class="bu">int</span>)</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'cold_extreme'</span>] <span class="op">=</span> (df[<span class="st">'TMIN_mean'</span>] <span class="op">&lt;=</span> COLD_THRESHOLD_C).astype(<span class="bu">int</span>)</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>    monthly_station_mean <span class="op">=</span> (</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>        df.groupby([<span class="st">'STATION'</span>, <span class="st">'month'</span>])[<span class="st">'PRCP_sum'</span>].transform(<span class="st">'mean'</span>)</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'PRCP_anom'</span>] <span class="op">=</span> df[<span class="st">'PRCP_sum'</span>] <span class="op">-</span> monthly_station_mean</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'PRCP_to_month_mean'</span>] <span class="op">=</span> df[<span class="st">'PRCP_sum'</span>] <span class="op">/</span> (monthly_station_mean <span class="op">+</span> <span class="fl">1e-3</span>)</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'TMEAN_station_norm'</span>] <span class="op">=</span> (</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">'TMEAN'</span>] <span class="op">-</span> df.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>].transform(<span class="st">'mean'</span>)</span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'PRCP_station_norm'</span>] <span class="op">=</span> (</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>        df[<span class="st">'PRCP_sum'</span>] <span class="op">-</span> df.groupby(<span class="st">'STATION'</span>)[<span class="st">'PRCP_sum'</span>].transform(<span class="st">'mean'</span>)</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'PRCP_log'</span>] <span class="op">=</span> np.log1p(df[<span class="st">'PRCP_sum'</span>].clip(lower<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="2a7e16da" class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> add_engineered_features(monthly)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fill_station_missing(df: pd.DataFrame) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Forward fill within each station to avoid leaking future information."""</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        df.groupby(<span class="st">'STATION'</span>, group_keys<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        .<span class="bu">apply</span>(<span class="kw">lambda</span> grp: grp.ffill())</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> fill_station_missing(monthly_fe)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> monthly_fe.dropna(subset<span class="op">=</span>[<span class="st">'TMEAN'</span>, <span class="st">'PRCP_sum'</span>]).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Relative extreme heat label (train years only, station/month 90th percentile)</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>train_mask_rel <span class="op">=</span> monthly_fe[<span class="st">'year'</span>] <span class="op">&lt;</span> TRAIN_THRESHOLD</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>station_month_quantiles <span class="op">=</span> (</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    monthly_fe[train_mask_rel]</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">'STATION'</span>, <span class="st">'month'</span>])[<span class="st">'TMEAN'</span>]</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    .quantile(REL_EXTREME_Q)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> monthly_fe.merge(</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    station_month_quantiles.rename(<span class="st">'tmean_quantile'</span>),</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    on<span class="op">=</span>[<span class="st">'STATION'</span>, <span class="st">'month'</span>],</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    how<span class="op">=</span><span class="st">'left'</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'heat_extreme_rel'</span>] <span class="op">=</span> (</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    monthly_fe[<span class="st">'TMEAN'</span>] <span class="op">&gt;=</span> monthly_fe[<span class="st">'tmean_quantile'</span>]</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>).astype(<span class="bu">int</span>)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'heat_extreme_next_rel'</span>] <span class="op">=</span> (</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    monthly_fe.groupby(<span class="st">'STATION'</span>)[<span class="st">'heat_extreme_rel'</span>].shift(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>monthly_fe <span class="op">=</span> monthly_fe.drop(columns<span class="op">=</span>[<span class="st">'tmean_quantile'</span>])</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'TMEAN_next'</span>] <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMEAN'</span>].shift(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'TMAX_next'</span>] <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMAX_mean'</span>].shift(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'TMIN_next'</span>] <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>)[<span class="st">'TMIN_mean'</span>].shift(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>monthly_fe[<span class="st">'PRCP_next'</span>] <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>)[<span class="st">'PRCP_sum'</span>].shift(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Feature engineered rows: </span><span class="sc">{</span><span class="bu">len</span>(monthly_fe)<span class="sc">:,}</span><span class="ss">'</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>monthly_fe.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Feature engineered rows: 2,400</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/var/folders/x8/59lsc6h95bz9br5gwthbx0rw0000gn/T/ipykernel_25324/221946923.py:8: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda grp: grp.ffill())</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="53">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">STATION</th>
+<th data-quarto-table-cell-role="th">year</th>
+<th data-quarto-table-cell-role="th">month</th>
+<th data-quarto-table-cell-role="th">PRCP_sum</th>
+<th data-quarto-table-cell-role="th">TMAX_mean</th>
+<th data-quarto-table-cell-role="th">TMIN_mean</th>
+<th data-quarto-table-cell-role="th">TMEAN</th>
+<th data-quarto-table-cell-role="th">ym</th>
+<th data-quarto-table-cell-role="th">temp_range</th>
+<th data-quarto-table-cell-role="th">prcp_roll3_mean</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">PRCP_to_month_mean</th>
+<th data-quarto-table-cell-role="th">TMEAN_station_norm</th>
+<th data-quarto-table-cell-role="th">PRCP_station_norm</th>
+<th data-quarto-table-cell-role="th">PRCP_log</th>
+<th data-quarto-table-cell-role="th">heat_extreme_rel</th>
+<th data-quarto-table-cell-role="th">heat_extreme_next_rel</th>
+<th data-quarto-table-cell-role="th">TMEAN_next</th>
+<th data-quarto-table-cell-role="th">TMAX_next</th>
+<th data-quarto-table-cell-role="th">TMIN_next</th>
+<th data-quarto-table-cell-role="th">PRCP_next</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>6</td>
+<td>1.74</td>
+<td>85.083333</td>
+<td>53.291667</td>
+<td>69.187500</td>
+<td>1996-06-01</td>
+<td>31.791667</td>
+<td>1.740000</td>
+<td>...</td>
+<td>0.995875</td>
+<td>18.015303</td>
+<td>0.606257</td>
+<td>1.007958</td>
+<td>0</td>
+<td>0.0</td>
+<td>73.370968</td>
+<td>87.967742</td>
+<td>58.774194</td>
+<td>1.01</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>7</td>
+<td>1.01</td>
+<td>87.967742</td>
+<td>58.774194</td>
+<td>73.370968</td>
+<td>1996-07-01</td>
+<td>29.193548</td>
+<td>1.375000</td>
+<td>...</td>
+<td>0.524356</td>
+<td>22.198771</td>
+<td>-0.123743</td>
+<td>0.698135</td>
+<td>0</td>
+<td>0.0</td>
+<td>71.596774</td>
+<td>87.064516</td>
+<td>56.129032</td>
+<td>0.56</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>8</td>
+<td>0.56</td>
+<td>87.064516</td>
+<td>56.129032</td>
+<td>71.596774</td>
+<td>1996-08-01</td>
+<td>30.935484</td>
+<td>1.103333</td>
+<td>...</td>
+<td>0.400306</td>
+<td>20.424578</td>
+<td>-0.573743</td>
+<td>0.444686</td>
+<td>0</td>
+<td>0.0</td>
+<td>60.750000</td>
+<td>74.600000</td>
+<td>46.900000</td>
+<td>2.34</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>9</td>
+<td>2.34</td>
+<td>74.600000</td>
+<td>46.900000</td>
+<td>60.750000</td>
+<td>1996-09-01</td>
+<td>27.700000</td>
+<td>1.303333</td>
+<td>...</td>
+<td>2.595128</td>
+<td>9.577803</td>
+<td>1.206257</td>
+<td>1.205971</td>
+<td>0</td>
+<td>0.0</td>
+<td>50.838710</td>
+<td>64.903226</td>
+<td>36.774194</td>
+<td>0.39</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>USW00003017</td>
+<td>1996</td>
+<td>10</td>
+<td>0.39</td>
+<td>64.903226</td>
+<td>36.774194</td>
+<td>50.838710</td>
+<td>1996-10-01</td>
+<td>28.129032</td>
+<td>1.096667</td>
+<td>...</td>
+<td>0.432852</td>
+<td>-0.333487</td>
+<td>-0.743743</td>
+<td>0.329304</td>
+<td>0</td>
+<td>0.0</td>
+<td>37.183333</td>
+<td>50.966667</td>
+<td>23.400000</td>
+<td>0.38</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 37 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="modeling-dataframe" class="level2">
+<h2 class="anchored" data-anchor-id="modeling-dataframe">Modeling dataframe</h2>
+<div id="cec2611c" class="cell" data-execution_count="54">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>feature_cols <span class="op">=</span> [</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">'PRCP_sum'</span>, <span class="st">'TMAX_mean'</span>, <span class="st">'TMIN_mean'</span>, <span class="st">'TMEAN'</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'temp_range'</span>, <span class="st">'prcp_roll3_mean'</span>, <span class="st">'prcp_roll6_mean'</span>, <span class="st">'tmean_roll3_mean'</span>, <span class="st">'tmean_roll6_std'</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'month_sin'</span>, <span class="st">'month_cos'</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'TMEAN_lag1'</span>, <span class="st">'TMEAN_lag3'</span>, <span class="st">'TMEAN_lag6'</span>, <span class="st">'TMEAN_lag12'</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'PRCP_lag1'</span>, <span class="st">'PRCP_lag3'</span>, <span class="st">'PRCP_lag12'</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">'TMEAN_roll3'</span>, <span class="st">'TMEAN_roll6'</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">'heat_extreme'</span>, <span class="st">'cold_extreme'</span>, <span class="st">'PRCP_anom'</span>, <span class="st">'PRCP_to_month_mean'</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">'TMEAN_station_norm'</span>, <span class="st">'PRCP_station_norm'</span>, <span class="st">'PRCP_log'</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>reg_targets <span class="op">=</span> [<span class="st">'TMEAN_next'</span>, <span class="st">'TMAX_next'</span>, <span class="st">'TMIN_next'</span>, <span class="st">'PRCP_next'</span>]</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>clf_target <span class="op">=</span> <span class="st">'heat_extreme_next_rel'</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>model_df <span class="op">=</span> monthly_fe.dropna(subset<span class="op">=</span>feature_cols <span class="op">+</span> reg_targets <span class="op">+</span> [clf_target]).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>summer_mask <span class="op">=</span> model_df[<span class="st">'month'</span>].between(<span class="dv">5</span>, <span class="dv">9</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Modeling dataframe shape:'</span>, model_df.shape)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Relative extreme heat class balance (all months):'</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_df[clf_target].value_counts().rename(<span class="st">'samples'</span>))</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Relative extreme heat class balance (May-Sep only):'</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_df.loc[summer_mask, clf_target].value_counts().rename(<span class="st">'samples'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Modeling dataframe shape: (2309, 37)
+Relative extreme heat class balance (all months):
+heat_extreme_next_rel
+0.0    1980
+1.0     329
+Name: samples, dtype: int64
+Relative extreme heat class balance (May-Sep only):
+heat_extreme_next_rel
+0.0    822
+1.0    151
+Name: samples, dtype: int64</code></pre>
+</div>
+</div>
+</section>
+<section id="traintest-split-and-scaling" class="level2">
+<h2 class="anchored" data-anchor-id="traintest-split-and-scaling">Train/test split and scaling</h2>
+<div id="9c42ea93" class="cell" data-execution_count="55">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _log1p_prcp(series: pd.Series) <span class="op">-&gt;</span> pd.Series:</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.log1p(series.clip(lower<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _inv_log1p_prcp(values: pd.Series) <span class="op">-&gt;</span> pd.Series:</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.expm1(values)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>train_threshold <span class="op">=</span> TRAIN_THRESHOLD  <span class="co"># train &lt; 2021, test &gt;= 2021</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>train_mask <span class="op">=</span> model_df[<span class="st">'year'</span>] <span class="op">&lt;</span> train_threshold</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>test_mask <span class="op">=</span> <span class="op">~</span>train_mask</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> model_df[feature_cols]</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>y_reg <span class="op">=</span> model_df[reg_targets]</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>X_train, X_test <span class="op">=</span> X[train_mask], X[test_mask]</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>y_reg_train, y_reg_test <span class="op">=</span> y_reg[train_mask], y_reg[test_mask]</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>y_reg_train_transformed <span class="op">=</span> y_reg_train.copy()</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>y_reg_train_transformed[<span class="st">'PRCP_next'</span>] <span class="op">=</span> _log1p_prcp(y_reg_train_transformed[<span class="st">'PRCP_next'</span>])</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>y_reg_test_transformed <span class="op">=</span> y_reg_test.copy()</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>y_reg_test_transformed[<span class="st">'PRCP_next'</span>] <span class="op">=</span> _log1p_prcp(y_reg_test_transformed[<span class="st">'PRCP_next'</span>])</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>X_train_scaled <span class="op">=</span> scaler.fit_transform(X_train)</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>X_test_scaled <span class="op">=</span> scaler.transform(X_test)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Classification subset: May-Sep only</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>clf_df <span class="op">=</span> model_df[model_df[<span class="st">'month'</span>].between(<span class="dv">5</span>, <span class="dv">9</span>)].copy()</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>clf_train_mask <span class="op">=</span> clf_df[<span class="st">'year'</span>] <span class="op">&lt;</span> train_threshold</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>clf_test_mask <span class="op">=</span> <span class="op">~</span>clf_train_mask</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>X_clf <span class="op">=</span> clf_df[feature_cols]</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>y_clf <span class="op">=</span> clf_df[clf_target].astype(<span class="bu">int</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>clf_scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>X_clf_train_scaled <span class="op">=</span> clf_scaler.fit_transform(X_clf[clf_train_mask])</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>X_clf_test_scaled <span class="op">=</span> clf_scaler.transform(X_clf[clf_test_mask])</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>y_clf_train <span class="op">=</span> y_clf[clf_train_mask]</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>y_clf_test <span class="op">=</span> y_clf[clf_test_mask]</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Regression samples - train/test:'</span>, X_train.shape[<span class="dv">0</span>], X_test.shape[<span class="dv">0</span>])</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Classification samples (May-Sep) - train/test:'</span>, X_clf_train_scaled.shape[<span class="dv">0</span>], X_clf_test_scaled.shape[<span class="dv">0</span>])</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Classification class counts (train):'</span>, y_clf_train.value_counts().to_dict())</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Classification class counts (test):'</span>, y_clf_test.value_counts().to_dict())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Regression samples - train/test: 1980 329
+Classification samples (May-Sep) - train/test: 833 140
+Classification class counts (train): {0: 728, 1: 105}
+Classification class counts (test): {0: 94, 1: 46}</code></pre>
+</div>
+</div>
+</section>
+<section id="regression-models" class="level2">
+<h2 class="anchored" data-anchor-id="regression-models">Regression models</h2>
+<div id="2e244d5f" class="cell" data-execution_count="56">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor, GradientBoostingRegressor</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.multioutput <span class="im">import</span> MultiOutputRegressor</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, mean_absolute_error, r2_score</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>PRCP_TARGET <span class="op">=</span> <span class="st">'PRCP_next'</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _convert_predictions(pred_array):</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    pred_df <span class="op">=</span> pd.DataFrame(pred_array, columns<span class="op">=</span>reg_targets)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    pred_df[PRCP_TARGET] <span class="op">=</span> _inv_log1p_prcp(pred_df[PRCP_TARGET]).clip(lower<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pred_df</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> summarize_regression(model, name):</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    model.fit(X_train_scaled, y_reg_train_transformed)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    preds_df <span class="op">=</span> _convert_predictions(model.predict(X_test_scaled))</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col <span class="kw">in</span> reg_targets:</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>        rmse <span class="op">=</span> mean_squared_error(y_reg_test[col], preds_df[col]) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        mae <span class="op">=</span> mean_absolute_error(y_reg_test[col], preds_df[col])</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        r2 <span class="op">=</span> r2_score(y_reg_test[col], preds_df[col])</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>col<span class="sc">}</span><span class="ss">: RMSE=</span><span class="sc">{</span>rmse<span class="sc">:.3f}</span><span class="ss">, MAE=</span><span class="sc">{</span>mae<span class="sc">:.3f}</span><span class="ss">, R2=</span><span class="sc">{</span>r2<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> preds_df.values, model</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>reg_models <span class="op">=</span> {</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Linear Regression'</span>: LinearRegression(),</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Random Forest Regressor'</span>: RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">300</span>, random_state<span class="op">=</span><span class="dv">42</span>, n_jobs<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Gradient Boosting Regressor'</span>: MultiOutputRegressor(GradientBoostingRegressor(random_state<span class="op">=</span><span class="dv">42</span>))</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>reg_predictions <span class="op">=</span> {}</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>fitted_models <span class="op">=</span> {}</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model_name, estimator <span class="kw">in</span> reg_models.items():</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    preds, fitted <span class="op">=</span> summarize_regression(estimator, model_name)</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>    reg_predictions[model_name] <span class="op">=</span> preds</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    fitted_models[model_name] <span class="op">=</span> fitted</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>y_reg_pred_lr <span class="op">=</span> reg_predictions[<span class="st">'Linear Regression'</span>]</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>y_reg_pred_rf <span class="op">=</span> reg_predictions[<span class="st">'Random Forest Regressor'</span>]</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>y_reg_pred_gb <span class="op">=</span> reg_predictions[<span class="st">'Gradient Boosting Regressor'</span>]</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>linreg <span class="op">=</span> fitted_models[<span class="st">'Linear Regression'</span>]</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>rf_reg <span class="op">=</span> fitted_models[<span class="st">'Random Forest Regressor'</span>]</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>gb_reg <span class="op">=</span> fitted_models[<span class="st">'Gradient Boosting Regressor'</span>]</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>rmse_naive <span class="op">=</span> mean_squared_error(y_reg_test[<span class="st">'TMEAN_next'</span>], X_test[<span class="st">'TMEAN_lag1'</span>]) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Naive baseline RMSE (TMEAN_next via lag1): </span><span class="sc">{</span>rmse_naive<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear Regression - TMEAN_next: RMSE=3.371, MAE=2.550, R2=0.960
+Linear Regression - TMAX_next: RMSE=3.834, MAE=2.916, R2=0.951
+Linear Regression - TMIN_next: RMSE=3.354, MAE=2.501, R2=0.960
+Linear Regression - PRCP_next: RMSE=2.206, MAE=1.372, R2=0.455
+
+Random Forest Regressor - TMEAN_next: RMSE=3.059, MAE=2.348, R2=0.967
+Random Forest Regressor - TMAX_next: RMSE=3.473, MAE=2.710, R2=0.960
+Random Forest Regressor - TMIN_next: RMSE=2.995, MAE=2.236, R2=0.968
+Random Forest Regressor - PRCP_next: RMSE=2.052, MAE=1.338, R2=0.528
+
+Gradient Boosting Regressor - TMEAN_next: RMSE=3.166, MAE=2.369, R2=0.965
+Gradient Boosting Regressor - TMAX_next: RMSE=3.588, MAE=2.725, R2=0.957
+Gradient Boosting Regressor - TMIN_next: RMSE=3.195, MAE=2.414, R2=0.964
+Gradient Boosting Regressor - PRCP_next: RMSE=2.069, MAE=1.357, R2=0.520
+
+Naive baseline RMSE (TMEAN_next via lag1): 13.429</code></pre>
+</div>
+</div>
+<section id="one-month-ahead-forecast" class="level3">
+<h3 class="anchored" data-anchor-id="one-month-ahead-forecast">One-month-ahead forecast</h3>
+<p>Use a persistence assumption: the most recent engineered features per station (through month <em>t</em>) are kept as the inputs for forecasting month <em>t+1</em>, while purely calendar-dependent features (month number, sine/cosine) and the obvious lag-1 values are updated. This keeps the pipeline transparent while acknowledging that we do not have fresh information for rolling features until the next observation arrives.</p>
+<div id="84c65872" class="cell" data-execution_count="57">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the most recent record per station to forecast the next month</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>last_rows <span class="op">=</span> monthly_fe.groupby(<span class="st">'STATION'</span>).tail(<span class="dv">1</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>future_df <span class="op">=</span> last_rows.copy()</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'month'</span>] <span class="op">=</span> future_df[<span class="st">'month'</span>] <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>rollover <span class="op">=</span> future_df[<span class="st">'month'</span>] <span class="op">==</span> <span class="dv">13</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>future_df.loc[rollover, <span class="st">'month'</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>future_df.loc[rollover, <span class="st">'year'</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'month_sin'</span>] <span class="op">=</span> np.sin(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> future_df[<span class="st">'month'</span>] <span class="op">/</span> <span class="fl">12.0</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'month_cos'</span>] <span class="op">=</span> np.cos(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> future_df[<span class="st">'month'</span>] <span class="op">/</span> <span class="fl">12.0</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'TMEAN_lag1'</span>] <span class="op">=</span> last_rows[<span class="st">'TMEAN'</span>]</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'PRCP_lag1'</span>] <span class="op">=</span> last_rows[<span class="st">'PRCP_sum'</span>]</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> [<span class="st">'TMEAN_lag3'</span>, <span class="st">'TMEAN_lag6'</span>, <span class="st">'TMEAN_lag12'</span>, <span class="st">'PRCP_lag3'</span>, <span class="st">'PRCP_lag12'</span>]:</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> col <span class="kw">in</span> future_df.columns:</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        future_df[col] <span class="op">=</span> last_rows[col]</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>persistence_cols <span class="op">=</span> [</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">'temp_range'</span>, <span class="st">'prcp_roll3_mean'</span>, <span class="st">'prcp_roll6_mean'</span>,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">'tmean_roll3_mean'</span>, <span class="st">'tmean_roll6_std'</span>, <span class="st">'TMEAN_roll3'</span>, <span class="st">'TMEAN_roll6'</span>,</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">'heat_extreme'</span>, <span class="st">'cold_extreme'</span>, <span class="st">'PRCP_anom'</span>, <span class="st">'PRCP_to_month_mean'</span>,</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'TMEAN_station_norm'</span>, <span class="st">'PRCP_station_norm'</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> persistence_cols:</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> col <span class="kw">in</span> future_df.columns:</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        future_df[col] <span class="op">=</span> last_rows[col]</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>future_df[<span class="st">'PRCP_log'</span>] <span class="op">=</span> np.log1p(future_df[<span class="st">'PRCP_sum'</span>].clip(lower<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>X_future <span class="op">=</span> future_df[feature_cols]</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>X_future_scaled <span class="op">=</span> scaler.transform(X_future)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _print_forecast(model, name):</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    preds_df <span class="op">=</span> _convert_predictions(model.predict(X_future_scaled))</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> forecast:'</span>)</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col <span class="kw">in</span> reg_targets:</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f'  </span><span class="sc">{</span>col<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>preds_df<span class="sc">.</span>iloc[<span class="dv">0</span>][col]<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> preds_df</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>future_pred_lr <span class="op">=</span> _print_forecast(linreg, <span class="st">'Linear Regression'</span>)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>future_pred_rf <span class="op">=</span> _print_forecast(rf_reg, <span class="st">'Random Forest'</span>)</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>future_pred_gb <span class="op">=</span> _print_forecast(gb_reg, <span class="st">'Gradient Boosting'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear Regression forecast:
+  TMEAN_next: 32.830
+  TMAX_next: 45.779
+  TMIN_next: 19.880
+  PRCP_next: 0.508
+Random Forest forecast:
+  TMEAN_next: 32.009
+  TMAX_next: 44.903
+  TMIN_next: 19.115
+  PRCP_next: 0.383
+Gradient Boosting forecast:
+  TMEAN_next: 30.873
+  TMAX_next: 44.739
+  TMIN_next: 18.567
+  PRCP_next: 0.496</code></pre>
+</div>
+</div>
+<div id="96e91b1d" class="cell" data-execution_count="58">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> TimeSeriesSplit</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Rolling-origin evaluation for TMEAN_next</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>tscv <span class="op">=</span> TimeSeriesSplit(n_splits<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>cv_rmse <span class="op">=</span> []</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> split_idx, (train_idx, test_idx) <span class="kw">in</span> <span class="bu">enumerate</span>(tscv.split(X), start<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    scaler_cv <span class="op">=</span> StandardScaler()</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    X_train_cv <span class="op">=</span> scaler_cv.fit_transform(X.iloc[train_idx])</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    X_test_cv <span class="op">=</span> scaler_cv.transform(X.iloc[test_idx])</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    y_train_cv <span class="op">=</span> y_reg.iloc[train_idx][<span class="st">'TMEAN_next'</span>]</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    y_test_cv <span class="op">=</span> y_reg.iloc[test_idx][<span class="st">'TMEAN_next'</span>]</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    gb_cv <span class="op">=</span> GradientBoostingRegressor(random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    gb_cv.fit(X_train_cv, y_train_cv)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    preds_cv <span class="op">=</span> gb_cv.predict(X_test_cv)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    rmse_cv <span class="op">=</span> mean_squared_error(y_test_cv, preds_cv) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    cv_rmse.append(rmse_cv)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Split </span><span class="sc">{</span>split_idx<span class="sc">}</span><span class="ss">: RMSE=</span><span class="sc">{</span>rmse_cv<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Rolling CV RMSE avg: </span><span class="sc">{</span>np<span class="sc">.</span>mean(cv_rmse)<span class="sc">:.3f}</span><span class="ss"> ± </span><span class="sc">{</span>np<span class="sc">.</span>std(cv_rmse)<span class="sc">:.3f}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Split 1: RMSE=5.552
+Split 2: RMSE=4.066
+Split 3: RMSE=3.666
+Split 4: RMSE=3.652
+Split 5: RMSE=5.033
+Rolling CV RMSE avg: 4.394 ± 0.766</code></pre>
+</div>
+</div>
+<div id="95648520" class="cell" data-execution_count="59">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> permutation_importance</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Permutation importance for Gradient Boosting on TMEAN_next</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>gb_single <span class="op">=</span> GradientBoostingRegressor(random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>gb_single.fit(X_train_scaled, y_reg_train[<span class="st">'TMEAN_next'</span>])</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>perm <span class="op">=</span> permutation_importance(</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    gb_single,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    X_test_scaled,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    y_reg_test[<span class="st">'TMEAN_next'</span>],</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    n_repeats<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    random_state<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    scoring<span class="op">=</span><span class="st">'neg_mean_squared_error'</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>perm_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'feature'</span>: feature_cols,</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'importance'</span>: perm.importances_mean,</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">'std'</span>: perm.importances_std</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">'importance'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>perm_df.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="59">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">feature</th>
+<th data-quarto-table-cell-role="th">importance</th>
+<th data-quarto-table-cell-role="th">std</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">3</td>
+<td>TMEAN</td>
+<td>114.108577</td>
+<td>6.948988</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">10</td>
+<td>month_cos</td>
+<td>31.484609</td>
+<td>2.072786</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">14</td>
+<td>TMEAN_lag12</td>
+<td>29.716491</td>
+<td>1.559981</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>month_sin</td>
+<td>23.773178</td>
+<td>1.792343</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>TMAX_mean</td>
+<td>14.266913</td>
+<td>1.306921</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">2</td>
+<td>TMIN_mean</td>
+<td>8.922821</td>
+<td>0.783027</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">13</td>
+<td>TMEAN_lag6</td>
+<td>2.809212</td>
+<td>0.439964</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">8</td>
+<td>tmean_roll6_std</td>
+<td>2.472995</td>
+<td>0.321886</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>TMEAN_lag3</td>
+<td>1.983124</td>
+<td>0.305188</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">24</td>
+<td>TMEAN_station_norm</td>
+<td>0.823795</td>
+<td>0.221594</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="classification-model-may-sep-relative-extreme-heat" class="level2">
+<h2 class="anchored" data-anchor-id="classification-model-may-sep-relative-extreme-heat">Classification model (May-Sep relative extreme heat)</h2>
+<p>Focus on summer months (May–Sep) where the relative label is most meaningful. Logistic Regression with <code>class_weight="balanced"</code> is the sole classifier.</p>
+<div id="ba696f52" class="cell" data-execution_count="61">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report, confusion_matrix, roc_auc_score, precision_recall_curve</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>log_clf <span class="op">=</span> LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>, solver<span class="op">=</span><span class="st">'liblinear'</span>, class_weight<span class="op">=</span><span class="st">'balanced'</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>log_clf.fit(X_clf_train_scaled, y_clf_train)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>y_clf_prob <span class="op">=</span> log_clf.predict_proba(X_clf_test_scaled)[:, <span class="dv">1</span>]</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>precision, recall, thresholds <span class="op">=</span> precision_recall_curve(y_clf_test, y_clf_prob)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>f1_scores <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> precision <span class="op">*</span> recall <span class="op">/</span> (precision <span class="op">+</span> recall <span class="op">+</span> <span class="fl">1e-8</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>best_idx <span class="op">=</span> f1_scores[:<span class="op">-</span><span class="dv">1</span>].argmax()</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>best_threshold <span class="op">=</span> thresholds[best_idx]</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Logistic Regression optimal probability threshold (by F1): </span><span class="sc">{</span>best_threshold<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> label, threshold <span class="kw">in</span> {</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Default 0.5 threshold'</span>: <span class="fl">0.5</span>,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'F1-optimized threshold'</span>: best_threshold,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>}.items():</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    preds <span class="op">=</span> (y_clf_prob <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Logistic Regression (</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(classification_report(y_clf_test, preds, digits<span class="op">=</span><span class="dv">3</span>, zero_division<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'Confusion matrix:'</span>)</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(confusion_matrix(y_clf_test, preds))</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Logistic Regression ROC AUC: </span><span class="sc">{</span>roc_auc_score(y_clf_test, y_clf_prob)<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Logistic Regression optimal probability threshold (by F1): 0.52
+Logistic Regression (Default 0.5 threshold)
+              precision    recall  f1-score   support
+
+           0      0.855     0.564     0.679        94
+           1      0.474     0.804     0.597        46
+
+    accuracy                          0.643       140
+   macro avg      0.665     0.684     0.638       140
+weighted avg      0.730     0.643     0.652       140
+
+Confusion matrix:
+[[53 41]
+ [ 9 37]]
+Logistic Regression (F1-optimized threshold)
+              precision    recall  f1-score   support
+
+           0      0.857     0.638     0.732        94
+           1      0.514     0.783     0.621        46
+
+    accuracy                          0.686       140
+   macro avg      0.686     0.710     0.676       140
+weighted avg      0.744     0.686     0.695       140
+
+Confusion matrix:
+[[60 34]
+ [10 36]]
+Logistic Regression ROC AUC: 0.725</code></pre>
+</div>
+</div>
+<div id="1338832b" class="cell" data-execution_count="66">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>best_reg_name <span class="op">=</span> <span class="st">'Random Forest Regressor'</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>reg_pred_df <span class="op">=</span> pd.DataFrame(reg_predictions[best_reg_name], columns<span class="op">=</span>reg_targets)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>test_targets_df <span class="op">=</span> y_reg_test.reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>test_meta <span class="op">=</span> model_df.loc[test_mask, [<span class="st">'STATION'</span>]].reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>station_metrics <span class="op">=</span> []</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> station, grp <span class="kw">in</span> test_meta.groupby(<span class="st">'STATION'</span>):</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> grp.index</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    y_true <span class="op">=</span> test_targets_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> reg_pred_df.loc[idx, <span class="st">'TMEAN_next'</span>]</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> mean_squared_error(y_true, y_pred) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    r2 <span class="op">=</span> r2_score(y_true, y_pred)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    station_metrics.append({<span class="st">'STATION'</span>: station, <span class="st">'rmse_tmean'</span>: rmse, <span class="st">'r2_tmean'</span>: r2, <span class="st">'samples'</span>: <span class="bu">len</span>(idx)})</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>station_metrics_df <span class="op">=</span> pd.DataFrame(station_metrics).sort_values(<span class="st">'rmse_tmean'</span>)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Per-station TMEAN_next metrics (using Random Forest predictions):'</span>)</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(station_metrics_df)</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>plt.scatter(test_targets_df[<span class="st">'TMEAN_next'</span>], reg_pred_df[<span class="st">'TMEAN_next'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>lims <span class="op">=</span> [<span class="bu">min</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">min</span>()),</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">max</span>(test_targets_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>(), reg_pred_df[<span class="st">'TMEAN_next'</span>].<span class="bu">max</span>())]</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>plt.plot(lims, lims, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Actual TMEAN_next (°F)'</span>)</span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted TMEAN_next (°F)'</span>)</span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'TMEAN_next predicted vs. actual'</span>)</span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Per-station TMEAN_next metrics (using Random Forest predictions):
+       STATION  rmse_tmean  r2_tmean  samples
+1  USW00012839    1.932871  0.854660       47
+4  USW00093134    2.236806  0.882146       47
+3  USW00024233    2.487606  0.938857       47
+5  USW00094789    3.270486  0.950329       47
+2  USW00023183    3.422408  0.948566       47
+0  USW00003017    3.725158  0.950455       47
+6  USW00094846    3.780647  0.951683       47</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="modeling_files/figure-html/cell-12-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="bccf64ea" class="cell" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, roc_auc_score</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>fpr, tpr, _ <span class="op">=</span> roc_curve(y_clf_test, y_clf_prob)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>roc_auc <span class="op">=</span> roc_auc_score(y_clf_test, y_clf_prob)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>plt.plot(fpr, tpr, label<span class="op">=</span><span class="ss">f'ROC AUC = </span><span class="sc">{</span>roc_auc<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], linestyle<span class="op">=</span><span class="st">'--'</span>, color<span class="op">=</span><span class="st">'gray'</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'False Positive Rate'</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'True Positive Rate'</span>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Logistic Regression ROC (May-Sep extreme heat)'</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">'lower right'</span>)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="modeling_files/figure-html/cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="be76c2ee" class="cell" data-execution_count="73">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>station_metrics_df.sort_values(<span class="st">'rmse_tmean'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="co"># RMSE</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'rmse_tmean'</span>], color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Per-station RMSE (TMEAN_next)'</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Station'</span>)</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'RMSE (°F)'</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>)  </span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co"># R*2</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(station_metrics_df[<span class="st">'STATION'</span>], station_metrics_df[<span class="st">'r2_tmean'</span>], color<span class="op">=</span><span class="st">'darkorange'</span>)</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Per-station R² (TMEAN_next)'</span>)</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Station'</span>)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'R²'</span>)</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].grid(<span class="va">True</span>, axis<span class="op">=</span><span class="st">'y'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].tick_params(axis<span class="op">=</span><span class="st">'x'</span>, rotation<span class="op">=</span><span class="dv">45</span>) </span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="modeling_files/figure-html/cell-14-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
