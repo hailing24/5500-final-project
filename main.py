@@ -13,7 +13,6 @@ except ImportError:
     EmissionsTracker = None
 
 # This script recreates the modeling workflow from the Jupyter notebook,
-# but in a single reproducible command-line entry point.
 # It performs:
 #   (1) raw to monthly preprocessing
 #   (2) model training (regression + classification)
@@ -21,14 +20,13 @@ except ImportError:
 #   (4) next-month forecasting
 #   (5) carbon-cost estimation
 
-CARBON_POWER_KW = 0.15  # Approximate laptop power draw (kW)
+CARBON_POWER_KW = 0.15  # Approximate laptop power draw
 CARBON_INTENSITY_KG_PER_KWH = 0.475  # Global average grid carbon intensity
 
 
 def _print_regression_metrics(results: ModelResult) -> None:
     """
     Pretty-print regression results for each model and each target variable.
-    Mirrors the notebook output so results are easy to compare.
     """
     print("=== Regression Metrics (test set) ===")
     for model_name, per_target in results.metrics.items():
@@ -43,8 +41,7 @@ def _print_regression_metrics(results: ModelResult) -> None:
 def _print_classification_metrics(results: ModelResult) -> None:
     """
     Print classification performance for the relative heat-extreme model.
-    Includes ROC AUC + F1 (default vs. optimized threshold),
-    plus classification reports and confusion matrices to mirror the notebook.
+    Includes ROC AUC + F1 (default vs. optimized threshold).
     """
     if not results.classification_metrics:
         return
@@ -86,7 +83,6 @@ def _estimate_carbon_cost(duration_seconds: float) -> float:
     """
     Convert runtime into estimated kg CO2e using a constant-power model:
         carbon = hours * power(kW) * carbon_intensity(kg/kWh)
-    This is a simplified but widely accepted approximation for small workloads.
     """
     hours = duration_seconds / 3600.0
     return hours * CARBON_POWER_KW * CARBON_INTENSITY_KG_PER_KWH
@@ -115,7 +111,7 @@ def _start_emissions_tracker(outputs_dir: str):
             log_level="warning",
         )
         tracker.start()
-    except Exception as exc:  # pragma: no cover - defensive logging
+    except Exception as exc: 
         print(f"Warning: CodeCarbon tracker could not be started ({exc}).")
         return None, None
 
@@ -131,7 +127,7 @@ def _stop_emissions_tracker(tracker):
 
     try:
         return tracker.stop()
-    except Exception as exc:  # pragma: no cover - defensive logging
+    except Exception as exc: 
         print(f"Warning: Failed to stop CodeCarbon tracker ({exc}).")
         return None
 

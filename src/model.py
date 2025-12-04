@@ -23,7 +23,7 @@ from sklearn.metrics import (
 )
 from sklearn.preprocessing import StandardScaler
 
-# Use 1996–2020 as training years and 2021+ as held-out test years.
+# Use 1996–2020 as training years and 2021+ as test years.
 TRAIN_THRESHOLD = 2021
 
 # 90th percentile for defining “relative heat extremes”
@@ -33,7 +33,7 @@ REL_EXTREME_Q = 0.90
 HEAT_THRESHOLD_C = 32.0
 COLD_THRESHOLD_C = 0.0
 
-# Full feature list (mirrors the notebook)
+# Full feature list 
 FEATURE_COLUMNS = [
     "PRCP_sum",
     "TMAX_mean",
@@ -274,7 +274,7 @@ def _prepare_future_inputs(feature_df: pd.DataFrame) -> pd.DataFrame:
         if col in future_df.columns:
             future_df[col] = last_rows[col]
 
-    # Persistence features (unchanged for next-month inference)
+    # Persistence features
     persistence_cols = [
         "temp_range",
         "prcp_roll3_mean",

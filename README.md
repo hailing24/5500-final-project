@@ -1,6 +1,24 @@
 # Forecasting Monthly Temperature, Precipitation, and Extreme Heat Events
 
-End‑to‑end pipeline that converts raw NOAA daily observations into monthly aggregates, engineers features, fits next‑month temperature/precipitation regressors, and classifies relative (May–Sep) heat extremes. The repository contains both a reproducible CLI entry point (`main.py`) and exploratory notebooks (most notably `notebooks/modeling.ipynb`).
+End‑to‑end pipeline that converts raw NOAA daily observations into monthly aggregates, engineers features, fits next‑month temperature and precipitation regressors, and classifies relative (May–Sep) heat extremes. The repository contains both a reproducible CLI entry point (`main.py`) and exploratory notebooks (most notably `notebooks/modeling.ipynb`).
+
+---
+
+## Problem Definition
+
+Climate variability directly affects **infrastructure planning, agriculture, public health, and extreme-heat preparedness**.  
+To support localized early-warning and resilience planning, this project investigates:
+
+### Goals
+1. **Forecast next-month temperature** (TMAX, TMIN, TMEAN)  
+2. **Forecast next-month precipitation (PRCP)**  
+3. **Classify relative extreme-heat months** (May–Sep), defined as:
+   - `TMAX_mean_next ≥` station-specific **90th percentile threshold**  
+     (computed using pre-2021 history only)
+
+### Why it matters
+Extreme-heat events are becoming **more frequent and more persistent** in major U.S. cities.  
+Accurate monthly-scale predictions are critical for **operational planning**, **public-health preparedness**, and **local climate resilience**.
 
 ---
 
@@ -22,7 +40,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
 5550-final-project/
 ├─ data/                         # Raw + monthly aggregated datasets
 ├─ notebooks/
-│  └─ modeling.ipynb             # Mirrors the CLI workflow with extra analysis/plots
+│  └─ modeling.ipynb             # The CLI workflow with extra analysis/plots
 ├─ outputs/                      # Predictions, forecasts, classification tables
 ├─ src/
 │  ├─ process.py                 # Daily to monthly aggregation utilities
@@ -33,7 +51,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
 
 ---
 
-## Environment
+### Environment
 
 - Python 3.10+
 - Key libraries: `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `codecarbon`
@@ -41,7 +59,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
 
 ---
 
-## Pipeline Overview
+### Pipeline Overview
 
 1. **Preprocessing (`src/process.py`)**
    - Parse daily NOAA csv, coerce numeric fields, derive `year`, `month`, and `TMEAN`.
@@ -72,7 +90,7 @@ End‑to‑end pipeline that converts raw NOAA daily observations into monthly a
 
 ---
 
-## Usage
+### Usage
 
 ```bash
 python main.py
@@ -83,22 +101,28 @@ The script:
 1. Rebuilds `data/monthly_data.csv` from daily raw data.
 2. Trains regressors + classifier.
 3. Writes the three csv outputs listed above.
-4. Prints evaluation tables similar to the modeling notebook (regression metrics per target, classification reports/confusion matrices, best threshold, carbon estimate).
-
-To inspect or visualize interactively, open `notebooks/modeling.ipynb`. The notebook reproduces the CLI outputs and adds:
-
-- Gradient Boosting baseline (tuned) comparisons.
-- Time-series cross-validation snippets.
-- Permutation importance for TMEAN_next.
-- ROC curves and per-station diagnostic plots.
+4. Prints evaluation tables similar to the modeling notebook (regression metrics per target, classification reports and confusion matrices, best threshold, carbon estimate).
 
 ---
 
-## Interpretation Guide
 
-- **Regression metrics**: TMEAN/TMAX/TMIN RMSE ≈ 3 °F with R² ≈ 0.97 (random forest). PRCP is inherently noisier (RMSE ≈ 2 in, R² ≈ 0.54).
-- **Classification**: ROC AUC ≈ 0.65 for 2021–2024 May–Sep test months. Default threshold maximizes recall for rare heat events; tuned threshold balances F1 around 0.50.
-- **Best model**: Random Forest almost always wins; Ridge provides a linear-but-regularized reference; Gradient Boosting illustrates a third approach.
+## Evaluation & Results
+
+### Temperature (TMAX, TMIN, TMEAN)
+
+- RMSE ≈ 3 °F, R² ≈ 0.96–0.97
+- Random Forest consistently best
+
+### Precipitation (PRCP)
+
+- RMSE ≈ 2 in, R² ≈ 0.54
+- Expected due to high variance and storm-driven spikes
+
+### Extreme Heat Classification
+
+- ROC AUC ≈ 0.65
+- Rare-event nature makes linear classification difficult
+- Optimized threshold yields balanced F1 ≈ 0.50
 
 ---
 
@@ -107,5 +131,27 @@ To inspect or visualize interactively, open `notebooks/modeling.ipynb`. The note
 - Every invocation of `python main.py` wraps preprocessing, model training, inference, and file exports in a [CodeCarbon](https://mlco2.github.io/codecarbon/) tracker. The tracker logs energy usage and estimated kg CO2e into `outputs/codecarbon/emissions.csv`.
 - The log file records both the aggregate run statistics (duration, CPU/GPU/RAM power draw, kg CO2e, hardware info) and a unique `run_id` so we can compare different experiments or machines.
 - Typical local runs on an Apple M2 laptop consume ≈ 9 s wall-clock time and ≈ 2 × 10⁻⁶ kg CO2e for the full training + inference pass (see the sample row currently in `outputs/codecarbon/emissions.csv`).
+
+---
+
+
+## Negative Results & Limitations
+
+This project intentionally documents realistic limitations:
+
+### Precipitation forecasting is difficult
+
+- High variance, heavy-tailed distribution
+- Driven by localized storm events
+
+### Extreme-heat classification
+
+- Rare-event → class imbalance
+- Limited set of predictors (no ENSO/PDO, humidity, etc.)
+
+### Dataset limitations
+
+- Only 7 stations (major cities with different climates)
+- Monthly resolution cannot capture fine-scale extremes
 
 ---

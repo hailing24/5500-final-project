@@ -109,16 +109,12 @@ def process_monthly_data(
     1. Read the raw NOAA daily CSV
     2. Convert daily observations into a cleaned daily frame
     3. Aggregate to monthly climate features
-    4. Optionally save the monthly output
-
-    The resulting dataframe matches the `monthly` dataframe used in the
-    modeling.ipynb notebook before feature engineering.
     """
     raw_df = _load_raw_data(raw_path)
     daily_df = _prepare_daily_frame(raw_df)
     monthly = _aggregate_monthly(daily_df)
 
-    # Persist monthly CSV for reproducibility and debugging
+    # Save CSV
     if monthly_output_path is not None:
         output_path = Path(monthly_output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
